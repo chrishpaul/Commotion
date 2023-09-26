@@ -31,7 +31,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         if let userAccel = motionData?.userAcceleration{
-            // cannot move a pinned block?
+            // BONUS: using the acceleration to update node positions
             
             if (spinBlock.position.x < 0 && userAccel.x < 0) || (spinBlock.position.x > self.size.width && userAccel.x > 0)
             {
@@ -40,6 +40,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             let action = SKAction.moveBy(x: userAccel.x*100, y: 0, duration: 0.1)
             self.spinBlock.run(action, withKey: "temp")
+            // TODO: as a class, make these into buttons
 
         }
     }
@@ -90,7 +91,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.text = "Score: 0"
         scoreLabel.fontSize = 20
         scoreLabel.fontColor = SKColor.blue
-        scoreLabel.position = CGPoint(x: frame.midX, y: frame.minY)
+        scoreLabel.position = CGPoint(x: frame.midX, y: frame.minY+20)
         
         addChild(scoreLabel)
     }
