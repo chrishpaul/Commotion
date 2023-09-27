@@ -11,13 +11,15 @@ import SpriteKit
 
 class GameViewController: UIViewController {
 
+    lazy var scene:GameScene = {
+        return GameScene(size: view.bounds.size)
+    }()
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         //setup game scene
-        let scene = GameScene(size: view.bounds.size)
         let skView = view as! SKView // the view in storyboard must be an SKView
         skView.showsFPS = true // show some debugging of the FPS
         skView.showsNodeCount = true // show how many active objects are in the scene
@@ -33,5 +35,11 @@ class GameViewController: UIViewController {
     }
     
 
-
+    @IBAction func moveRight(_ sender: Any) {
+        self.scene.moveScoreNode(by: 10)
+    }
+    
+    @IBAction func moveLeft(_ sender: Any) {
+        self.scene.moveScoreNode(by: -10)
+    }
 }
