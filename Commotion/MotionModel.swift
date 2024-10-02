@@ -19,7 +19,7 @@ protocol ActivityDelegate {
 class MotionModel {
     
     // MARK: ======Class Variables======
-    let activityManager = CMMotionActivityManager()
+    private let activityManager = CMMotionActivityManager()
     var delegate:ActivityDelegate? = nil
     
     // MARK: ======Motion Methods======

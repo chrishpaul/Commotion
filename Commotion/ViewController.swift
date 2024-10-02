@@ -9,7 +9,7 @@
 import UIKit
 import CoreMotion
 
-class ViewController: UIViewController, ActivityDelegate {
+class ViewController: UIViewController {
     
     @IBOutlet weak var activityLabel: UILabel!
     
@@ -26,6 +26,12 @@ class ViewController: UIViewController, ActivityDelegate {
         motionModel.startActivityMonitoring()
     }
 
+    
+    
+}
+
+//MARK: Extension for Delegate
+extension ViewController: ActivityDelegate{
     // MARK: ======Motion Methods======
     func activityUpdated(activity:CMMotionActivity){
 
@@ -46,8 +52,4 @@ class ViewController: UIViewController, ActivityDelegate {
             self.activityLabel.text = "Not Walking or Running"
         }
     }
-    
-
-
 }
-
