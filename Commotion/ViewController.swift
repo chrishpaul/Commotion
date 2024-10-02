@@ -9,51 +9,44 @@
 import UIKit
 import CoreMotion
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, ActivityDelegate {
     
     @IBOutlet weak var activityLabel: UILabel!
     
-    // MARK: ======Class Variables======
-    let activityManager = CMMotionActivityManager()
+    let motionModel = MotionModel()
 
     // MARK: ======UI Lifecycle Methods======
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // adopt the protocol from model
+        motionModel.delegate = self
+        
         // just start doing motion updates
-        startActivityMonitoring()
+        motionModel.startActivityMonitoring()
     }
 
     // MARK: ======Motion Methods======
-    func startActivityMonitoring(){
-        // if active, let's start processing
-        if CMMotionActivityManager.isActivityAvailable(){
-            // assign updates to the main queue for activity
-            self.activityManager.startActivityUpdates(to: OperationQueue.main)
-            {(activity:CMMotionActivity?)->Void in
-                if let unwrappedActivity = activity {
-                     
-                    // debug, print out the activity decsription into the console
-                    print(unwrappedActivity.description)
-                    
-                    // update label with one of three activities
-                    if(unwrappedActivity.walking){
-                        self.activityLabel.text = "🚶Walking, conf: \(unwrappedActivity.confidence.rawValue)"
-                    }
-                    else if(unwrappedActivity.running){
-                        self.activityLabel.text = "🏃Running, conf: \(unwrappedActivity.confidence.rawValue)"
-                    }
-                    else if(unwrappedActivity.stationary){
-                        self.activityLabel.text = "📱Stationary, conf: \(unwrappedActivity.confidence.rawValue)"
-                    }
-                    else{
-                        self.activityLabel.text = "Not Walking or Running"
-                    }
-                }
-            }
-        }
+    func activityUpdated(activity:CMMotionActivity){
+
+        // debug, print out the activity decsription into the console
+        print(activity.description)
         
+        // update label with one of three activities
+        if(activity.walking){
+            self.activityLabel.text = "🚶Walking, conf: \(activity.confidence.rawValue)"
+        }
+        else if(activity.running){
+            self.activityLabel.text = "🏃Running, conf: \(activity.confidence.rawValue)"
+        }
+        else if(activity.stationary){
+            self.activityLabel.text = "📱Stationary, conf: \(activity.confidence.rawValue)"
+        }
+        else{
+            self.activityLabel.text = "Not Walking or Running"
+        }
     }
+    
 
 
 }
