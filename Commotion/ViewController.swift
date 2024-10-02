@@ -11,15 +11,19 @@ import CoreMotion
 
 class ViewController: UIViewController {
     
+    //TODO: ===should we have a model for proper MVC separation?===
     //MARK: class variables
     let activityManager = CMMotionActivityManager()
     let pedometer = CMPedometer()
     let motion = CMMotionManager()
+    
     var totalSteps: Float = 0.0 {
-        willSet(newtotalSteps){
+        willSet(newtotalSteps){ // observer
             DispatchQueue.main.async{
+                // set value with subtle animation
                 self.stepsSlider.setValue(newtotalSteps, animated: true)
                 self.stepsLabel.text = "Steps: \(newtotalSteps)"
+
             }
         }
     }
@@ -39,12 +43,16 @@ class ViewController: UIViewController {
         self.startPedometerMonitoring()
         self.startMotionUpdates()
     }
-
+   
     
+}
+
+// MARK: Extension for Raw Motion
+extension ViewController{
     
     // MARK: Raw Motion Functions
     func startMotionUpdates(){
-        // some internal inconsistency here: we need to ask the device manager for device 
+        // some internal inconsistency here: we need to ask the device manager for device
         
         // TODO: should we be doing this from the MAIN queue? You may need to fix that!  ...
         if self.motion.isDeviceMotionAvailable{
@@ -60,15 +68,33 @@ class ViewController: UIViewController {
             // atan give angle of opposite over adjacent
             //   (y is out top of phone, x is out the side)
             //   but UI origin is top left with increasing down and to the right
-            //   therefore proper rotation is the angle pointing opposite of motion
+            //   therefore proper rotation is the angle pointing opposite of motion (i.e., subtract pi)
             //
             let rotation = atan2(gravity.x, gravity.y) - Double.pi
             self.isWalking.transform = CGAffineTransform(rotationAngle:
                                                             CGFloat(rotation))
         }
     }
+}
+
+// MARK: Extension for Pedometer and Activity
+extension ViewController{
+    // ========Pedometer Functions========
+    func startPedometerMonitoring(){
+        //separate out the handler for better readability
+        if CMPedometer.isStepCountingAvailable(){
+            pedometer.startUpdates(from: Date(),withHandler: self.handlePedometer )
+        }
+    }
     
-    // MARK: Activity Functions
+    //ped handler, show steps on slider
+    func handlePedometer(_ pedData:CMPedometerData?, error:Error?){
+        if let steps = pedData?.numberOfSteps {
+            self.totalSteps = steps.floatValue
+        }
+    }
+    
+    // ========Activity Functions========
     func startActivityMonitoring(){
         // is activity is available
         if CMMotionActivityManager.isActivityAvailable(){
@@ -87,22 +113,4 @@ class ViewController: UIViewController {
             }
         }
     }
-    
-    // MARK: Pedometer Functions
-    func startPedometerMonitoring(){
-        //separate out the handler for better readability
-        if CMPedometer.isStepCountingAvailable(){
-            pedometer.startUpdates(from: Date(),withHandler: self.handlePedometer )
-        }
-    }
-    
-    //ped handler, show steps on slider
-    func handlePedometer(_ pedData:CMPedometerData?, error:Error?){
-        if let steps = pedData?.numberOfSteps {
-            self.totalSteps = steps.floatValue
-        }
-    }
-
-
 }
-
