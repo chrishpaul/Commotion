@@ -18,8 +18,8 @@ protocol MotionDelegate {
 class MotionModel{
     
     // MARK: =====Class Variables=====
-    let activityManager = CMMotionActivityManager()
-    let pedometer = CMPedometer()
+    private let activityManager = CMMotionActivityManager()
+    private let pedometer = CMPedometer()
     var delegate:MotionDelegate? = nil
     
     // MARK: =====Motion Methods=====
