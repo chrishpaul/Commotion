@@ -10,46 +10,31 @@ import UIKit
 import SpriteKit
 import CoreMotion
 
-class GameScene: SKScene, SKPhysicsContactDelegate {
+class GameScene: SKScene {
 
     //@IBOutlet weak var scoreLabel: UILabel!
     
-    // MARK: Raw Motion Functions
+    // MARK: Motion Property
     let motion = CMMotionManager()
-    func startMotionUpdates(){
-        // if motion is available, start updating the device motion
-        if self.motion.isDeviceMotionAvailable{
-            self.motion.deviceMotionUpdateInterval = 0.2
-            self.motion.startDeviceMotionUpdates(to: OperationQueue.main, withHandler: self.handleMotion )
+    
+    // MARK: Create Sprites Functions
+    let spinBlock = SKSpriteNode()
+    let scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
+    var score:Int = 0 {
+        willSet(newValue){
+            DispatchQueue.main.async{
+                self.scoreLabel.text = "Score: \(newValue)"
+            }
         }
     }
-    
-    func handleMotion(_ motionData:CMDeviceMotion?, error:Error?){
-        // make gravity in the game als the simulator gravity
-        if let gravity = motionData?.gravity {
-            self.physicsWorld.gravity = CGVector(dx: CGFloat(9.8*gravity.x), dy: CGFloat(9.8*gravity.y))
-        }
-        
-//        if let userAccel = motionData?.userAcceleration{
-//            // BONUS: using the acceleration to update node positions
-//            
-//            if (spinBlock.position.x < 0 && userAccel.x < 0) || (spinBlock.position.x > self.size.width && userAccel.x > 0)
-//            {
-//                // do not update the position
-//                return
-//            }
-//            let action = SKAction.moveBy(x: userAccel.x*100, y: 0, duration: 0.1)
-//            self.spinBlock.run(action, withKey: "temp")
-//            // TODO: as a class, make these into buttons
-//
-//        }
-    }
-    
+ 
     
     // MARK: View Hierarchy Functions
     // this is like out "View Did Load" function
     override func didMove(to view: SKView) {
+        // contact delegate functions
         physicsWorld.contactDelegate = self
+        
         backgroundColor = SKColor.white
         
         // start motion for gravity
@@ -63,7 +48,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addStaticBlockAtPoint(CGPoint(x: size.width * 0.9, y: size.height * 0.25))
         
         // add a spinning block
-        self.addBlockAtPoint(CGPoint(x: size.width * 0.5, y: size.height * 0.35))
+        self.addSpinningBlockAtPoint(CGPoint(x: size.width * 0.5, y: size.height * 0.35))
         
         // add in the interaction sprite
         self.addSpriteBottle()
@@ -75,16 +60,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.score = 0
     }
     
-    // MARK: Create Sprites Functions
-    let spinBlock = SKSpriteNode()
-    let scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
-    var score:Int = 0 {
-        willSet(newValue){
-            DispatchQueue.main.async{
-                self.scoreLabel.text = "Score: \(newValue)"
-            }
-        }
-    }
+
     
     func addScore(){
         
@@ -116,7 +92,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(spriteA)
     }
     
-    func addBlockAtPoint(_ point:CGPoint){
+    func addSpinningBlockAtPoint(_ point:CGPoint){
         
         spinBlock.color = UIColor.red
         spinBlock.size = CGSize(width:size.width*0.15,height:size.height * 0.05)
@@ -175,6 +151,55 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.addChild(obj)
         }
     }
+  
+
+}
+
+extension GameScene{
+    // TODO: Update the movement here
+    // an example to get things going, moves the score label
+    func moveScoreNode(by amt: Float){
+        let action = SKAction.moveBy(x: CGFloat(amt), y: 0, duration: 0.5)
+        self.scoreLabel.run(action, withKey: "temp")
+    }
+    
+}
+
+
+
+extension GameScene: SKPhysicsContactDelegate{
+    
+    // MARK: Raw Motion Functions
+    func startMotionUpdates(){
+        // if motion is available, start updating the device motion
+        if self.motion.isDeviceMotionAvailable{
+            self.motion.deviceMotionUpdateInterval = 0.2
+            self.motion.startDeviceMotionUpdates(to: OperationQueue.main, withHandler: self.handleMotion )
+        }
+    }
+    
+    func handleMotion(_ motionData:CMDeviceMotion?, error:Error?){
+        // make gravity in the game als the simulator gravity
+        if let gravity = motionData?.gravity {
+            self.physicsWorld.gravity = CGVector(dx: CGFloat(9.8*gravity.x), dy: CGFloat(9.8*gravity.y))
+        }
+        
+//        if let userAccel = motionData?.userAcceleration{
+//            // BONUS: using the acceleration to update node positions
+//
+//            if (spinBlock.position.x < 0 && userAccel.x < 0) || (spinBlock.position.x > self.size.width && userAccel.x > 0)
+//            {
+//                // do not update the position
+//                return
+//            }
+//            let action = SKAction.moveBy(x: userAccel.x*100, y: 0, duration: 0.1)
+//            self.spinBlock.run(action, withKey: "temp")
+//            // TODO: as a class, make these into buttons
+//
+//        }
+    }
+    
+    
     
     // MARK: =====Delegate Functions=====
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -189,11 +214,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // TODO: How might we add additional scoring mechanisms?
-    }
-    
-    func moveScoreNode(by amt: Float){
-        let action = SKAction.moveBy(x: CGFloat(amt), y: 0, duration: 0.1)
-        self.spinBlock.run(action, withKey: "temp")
     }
     
     // MARK: Utility Functions (thanks ray wenderlich!)
