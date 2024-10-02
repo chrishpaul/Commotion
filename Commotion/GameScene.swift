@@ -10,46 +10,28 @@ import UIKit
 import SpriteKit
 import CoreMotion
 
-class GameScene: SKScene, SKPhysicsContactDelegate {
-
-    //@IBOutlet weak var scoreLabel: UILabel!
+class GameScene: SKScene {
     
-    // MARK: Raw Motion Functions
+    // MARK: Motion property
     let motion = CMMotionManager()
-    func startMotionUpdates(){
-        // if motion is available, start updating the device motion
-        if self.motion.isDeviceMotionAvailable{
-            self.motion.deviceMotionUpdateInterval = 0.2
-            self.motion.startDeviceMotionUpdates(to: OperationQueue.main, withHandler: self.handleMotion )
-        }
-    }
     
-    func handleMotion(_ motionData:CMDeviceMotion?, error:Error?){
-        // make gravity in the game als the simulator gravity
-        if let gravity = motionData?.gravity {
-            self.physicsWorld.gravity = CGVector(dx: CGFloat(9.8*gravity.x), dy: CGFloat(9.8*gravity.y))
-        }
-        
-        if let userAccel = motionData?.userAcceleration{
-            // BONUS: using the acceleration to update node positions
-            
-            if (spinBlock.position.x < 0 && userAccel.x < 0) || (spinBlock.position.x > self.size.width && userAccel.x > 0)
-            {
-                // do not update the position
-                return
+    // MARK: Create Sprites Functions
+    let spinBlock = SKSpriteNode()
+    let scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
+    var score:Int = 0 {
+        willSet(newValue){
+            DispatchQueue.main.async{
+                self.scoreLabel.text = "Score: \(newValue)"
             }
-            let action = SKAction.moveBy(x: userAccel.x*100, y: 0, duration: 0.1)
-            self.spinBlock.run(action, withKey: "temp")
-            // TODO: as a class, make these into buttons
-
         }
     }
-    
     
     // MARK: View Hierarchy Functions
     // this is like out "View Did Load" function
     override func didMove(to view: SKView) {
+        // delegate for the contact of objects
         physicsWorld.contactDelegate = self
+        
         backgroundColor = SKColor.white
         
         // start motion for gravity
@@ -63,7 +45,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addStaticBlockAtPoint(CGPoint(x: size.width * 0.9, y: size.height * 0.25))
         
         // add a spinning block
-        self.addBlockAtPoint(CGPoint(x: size.width * 0.5, y: size.height * 0.35))
+        self.addSpinningBlockAtPoint(CGPoint(x: size.width * 0.5, y: size.height * 0.35))
         
         // add in the interaction sprite
         self.addSpriteBottle()
@@ -75,22 +57,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.score = 0
     }
     
-    // MARK: Create Sprites Functions
-    let spinBlock = SKSpriteNode()
-    let scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
-    var score:Int = 0 {
-        willSet(newValue){
-            DispatchQueue.main.async{
-                self.scoreLabel.text = "Score: \(newValue)"
-            }
-        }
-    }
+
     
     func addScore(){
         
         scoreLabel.text = "Score: 0"
         scoreLabel.fontSize = 20
         scoreLabel.fontColor = SKColor.blue
+        // place score in middle of screen horizontally, and a littel above the minimum vertical
         scoreLabel.position = CGPoint(x: frame.midX, y: frame.minY+20)
         
         addChild(scoreLabel)
@@ -116,7 +90,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(spriteA)
     }
     
-    func addBlockAtPoint(_ point:CGPoint){
+    func addSpinningBlockAtPoint(_ point:CGPoint){
         
         spinBlock.color = UIColor.red
         spinBlock.size = CGSize(width:size.width*0.15,height:size.height * 0.05)
@@ -176,12 +150,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    // MARK: =====Delegate Functions=====
+}
+
+
+extension GameScene: SKPhysicsContactDelegate{
+    
+    
+    // here is an inherited function from SKScene
+    // this is called ANYTIME someone lifts a touch from the screen
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         self.addSpriteBottle()
     }
     
-    // here is our collision function
+    // MARK: ===== Contact Delegate Functions=====
     func didBegin(_ contact: SKPhysicsContact) {
         // if anything interacts with the spin Block, then we should update the score
         if contact.bodyA.node == spinBlock || contact.bodyB.node == spinBlock {
@@ -189,6 +170,42 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // TODO: How might we add additional scoring mechanisms?
+    }
+}
+
+
+extension GameScene{
+    // MARK: Raw Motion Functions
+    func startMotionUpdates(){
+        // if motion is available, start updating the device motion
+        if self.motion.isDeviceMotionAvailable{
+            self.motion.deviceMotionUpdateInterval = 0.2
+            self.motion.startDeviceMotionUpdates(to: OperationQueue.main, withHandler: self.handleMotion )
+        }
+    }
+    
+    func handleMotion(_ motionData:CMDeviceMotion?, error:Error?){
+        // make gravity in the game als the simulator gravity
+        if let gravity = motionData?.gravity {
+            self.physicsWorld.gravity = CGVector(dx: CGFloat(9.8*gravity.x), dy: CGFloat(9.8*gravity.y))
+        }
+        
+        
+        // BONUS: using the acceleration to update node positions
+        // Is this a good idea to do? Is it Easy to control?
+        if let userAccel = motionData?.userAcceleration{
+            
+            
+            if (spinBlock.position.x < 0 && userAccel.x < 0) || (spinBlock.position.x > self.size.width && userAccel.x > 0)
+            {
+                // do not update the position
+                return
+            }
+            let action = SKAction.moveBy(x: userAccel.x*100, y: 0, duration: 0.1)
+            self.spinBlock.run(action, withKey: "temp")
+            // TODO: as a class, make these into buttons
+
+        }
     }
     
     // MARK: Utility Functions (thanks ray wenderlich!)
