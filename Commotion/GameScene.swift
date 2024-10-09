@@ -16,7 +16,7 @@ class GameScene: SKScene {
     let motion = CMMotionManager()
     
     // MARK: Create Sprites Functions
-    let spinBlock = SKSpriteNode()
+    let platformBlock = SKSpriteNode()
     let scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
     var score:Int = 0 {
         willSet(newValue){
@@ -29,6 +29,7 @@ class GameScene: SKScene {
     // MARK: View Hierarchy Functions
     // this is like out "View Did Load" function
     override func didMove(to view: SKView) {
+        
         // delegate for the contact of objects
         physicsWorld.contactDelegate = self
         
@@ -74,13 +75,16 @@ class GameScene: SKScene {
     func addSpriteBottle(){
         let spriteA = SKSpriteNode(imageNamed: "sprite") // this is literally a sprite bottle... 😎
         
-        spriteA.size = CGSize(width:size.width*0.1,height:size.height * 0.1)
+        spriteA.size = CGSize(width:size.width*0.1,
+                              height:size.height * 0.1)
         
         let randNumber = random(min: CGFloat(0.1), max: CGFloat(0.9))
-        spriteA.position = CGPoint(x: size.width * randNumber, y: size.height * 0.75)
+        spriteA.position = CGPoint(x: size.width * randNumber,
+                                   y: size.height * 0.75)
         
         spriteA.physicsBody = SKPhysicsBody(rectangleOf:spriteA.size)
-        spriteA.physicsBody?.restitution = random(min: CGFloat(1.0), max: CGFloat(1.5))
+        spriteA.physicsBody?.restitution = random(min: CGFloat(1.0),
+                                                  max: CGFloat(1.5))
         spriteA.physicsBody?.isDynamic = true
         // for collision detection we need to setup these masks
         spriteA.physicsBody?.contactTestBitMask = 0x00000001
@@ -92,21 +96,21 @@ class GameScene: SKScene {
     
     func addSpinningBlockAtPoint(_ point:CGPoint){
         
-        spinBlock.color = UIColor.red
-        spinBlock.size = CGSize(width:size.width*0.15,height:size.height * 0.05)
-        spinBlock.position = point
+        platformBlock.color = UIColor.red
+        platformBlock.size = CGSize(width:size.width*0.15,height:size.height * 0.05)
+        platformBlock.position = point
         
         
-        spinBlock.physicsBody = SKPhysicsBody(rectangleOf:spinBlock.size)
-        spinBlock.physicsBody?.contactTestBitMask = 0x00000001
-        spinBlock.physicsBody?.collisionBitMask = 0x00000001
-        spinBlock.physicsBody?.categoryBitMask = 0x00000001
-        spinBlock.physicsBody?.isDynamic = true
-        spinBlock.physicsBody?.pinned = false
-        spinBlock.physicsBody?.affectedByGravity = false
-        spinBlock.physicsBody?.mass = 100000
+        platformBlock.physicsBody = SKPhysicsBody(rectangleOf:platformBlock.size)
+        platformBlock.physicsBody?.contactTestBitMask = 0x00000001
+        platformBlock.physicsBody?.collisionBitMask = 0x00000001
+        platformBlock.physicsBody?.categoryBitMask = 0x00000001
+        platformBlock.physicsBody?.isDynamic = true
+        platformBlock.physicsBody?.pinned = false
+        platformBlock.physicsBody?.affectedByGravity = false
+        platformBlock.physicsBody?.mass = 100000
         
-        self.addChild(spinBlock)
+        self.addChild(platformBlock)
 
     }
     
@@ -165,7 +169,7 @@ extension GameScene: SKPhysicsContactDelegate{
     // MARK: ===== Contact Delegate Functions=====
     func didBegin(_ contact: SKPhysicsContact) {
         // if anything interacts with the spin Block, then we should update the score
-        if contact.bodyA.node == spinBlock || contact.bodyB.node == spinBlock {
+        if contact.bodyA.node == platformBlock || contact.bodyB.node == platformBlock {
             self.score += 1
         }
         
@@ -196,13 +200,13 @@ extension GameScene{
         if let userAccel = motionData?.userAcceleration{
             
             
-            if (spinBlock.position.x < 0 && userAccel.x < 0) || (spinBlock.position.x > self.size.width && userAccel.x > 0)
+            if (platformBlock.position.x < 0 && userAccel.x < 0) || (platformBlock.position.x > self.size.width && userAccel.x > 0)
             {
                 // do not update the position
                 return
             }
             let action = SKAction.moveBy(x: userAccel.x*100, y: 0, duration: 0.1)
-            self.spinBlock.run(action, withKey: "temp")
+            self.platformBlock.run(action, withKey: "temp")
             // TODO: as a class, make these into buttons
 
         }
